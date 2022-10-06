@@ -10,14 +10,18 @@ export default class CatmullRope {
     _init() {
         this._setup = false;
         this._modifiedPath = [];
+        this._speed = (Math.random() * 0.1) + 0.9; // some initial speed variance
+        this._angle = Math.random() * 3.14; // used to vary speed over time
+        this._speedVariance = Math.random() * 0.5; // amount of speed variance
+        this._speedVarianceFrequency = (Math.random() * 0.5) + 0.5; // rate of speed variance
 
         // runs smooth up to 31000 sections
         this._ropeSections = 480;//2400;
         this._ropeLength = 918; // <- is this to do with the image resolution?
         this._sectionLength = this._ropeLength / this._ropeSections;
 
-        this._startDot = PIXI.Sprite.from('goldCircle.png');
-        this._endDot = PIXI.Sprite.from('goldCircle.png');
+        this._startDot = PIXI.Sprite.from('gldDot.png');
+        this._endDot = PIXI.Sprite.from('gldDot.png');
         this._startDot.anchor.set(0.5, 0.5); // = new PIXI.ObservablePoint(0.5, 0.5);
         this._endDot.anchor.set(0.5, 0.5);
 
@@ -27,7 +31,8 @@ export default class CatmullRope {
             this._points.push(new PIXI.Point(i * this._sectionLength, 0));
         }
 
-        this._goldBar = PIXI.Texture.fromImage('goldBar.png');
+        // I think the minimum width of the snake might be 16 pixels, discovered when trying to use the 8 pixel tall 'gldSt
+        this._goldBar = PIXI.Texture.fromImage('gldStrip.png');
         this._goldBar.anchor = new PIXI.ObservablePoint(0.5, 0.5);
         this._strip = new PIXI.mesh.Rope(this._goldBar, this._points);
 
@@ -40,7 +45,7 @@ export default class CatmullRope {
 
         this._snakeContainer.addChild(this._strip);
 
-        this._fakeDeltaTime = 0.015;
+        this._fakeDeltaTime = 0.3;
         this._T = 0;
     }
 
@@ -49,10 +54,15 @@ export default class CatmullRope {
             return;
         }
         for (var i = 0; i < this._points.length; i++) {
-            const pos = this._catmullRom(this._path, this._T * (i/this._points.length))
+            const relativeT = this._T * (i/this._points.length);
+
+            // only do this up to T === 1
+            const pos = this._catmullRom(this._path, relativeT);
 
             this._points[i].x = pos.x;
             this._points[i].y = pos.y;
+
+            // Then undulate all the time once position is set :)
 
             //Positionthis._StartDot()
             if (i === 0) {
@@ -65,10 +75,11 @@ export default class CatmullRope {
                 this._endDot.x = pos.x;
                 this._endDot.y = pos.y;
             }
-
-            this._T += this._fakeDeltaTime * (1/this._ropeSections) * 0.3;
-            this._T = this._T > 1 ? 1 : this._T; 
         }
+        const variedSpeed = this._speed + (Math.sin(this._angle) * this._speedVariance);
+        this._angle += this._fakeDeltaTime * 0.1 * this._speedVarianceFrequency;
+        this._T += this._fakeDeltaTime * (1/this._ropeSections) * variedSpeed;
+        this._T = this._T > 1 ? 1 : this._T; 
     }
 
     _catmullRom(path, t) {
