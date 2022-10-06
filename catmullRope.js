@@ -48,7 +48,7 @@ export default class CatmullRope {
 
         this._snakeContainer.addChild(this._strip);
 
-        this._fakeDeltaTime = 0.3;
+        this._fakeDeltaTime = 1.8;
         this._T = 0;
     }
 
@@ -64,9 +64,9 @@ export default class CatmullRope {
                 point.y = pos.y;
 
             //undulate
-            point.y += Math.sin(this._globalAngle + (relativeT * 30)) * 8; // global undulation (whole stave)
-            point.y += Math.sin(this._angle + (relativeT * 45)) * 4; // local undulation (this line)
-            point.x += Math.sin(this._angle + (relativeT * 15)) * 3; 
+            point.y += Math.sin(this._globalAngle + (relativeT * 6)) * 8; // global undulation (whole stave)
+            point.y += Math.sin(this._angle + (relativeT * 9)) * 4; // local undulation (this line)
+            point.x += Math.sin(this._angle + (relativeT * 3)) * 3; 
 
             //Positionthis._StartDot()
             if (i === 0) {
@@ -81,11 +81,11 @@ export default class CatmullRope {
             }
         }
         const variedSpeed = this._speed + (Math.sin(this._angle) * this._speedVariance);
-        this._angle += this._fakeDeltaTime * 0.1 * this._speedVarianceFrequency;
+        this._angle += this._fakeDeltaTime * 0.02 * this._speedVarianceFrequency;
         this._T += this._fakeDeltaTime * (1/this._ropeSections) * variedSpeed;
         this._T = this._T > 1 ? 1 : this._T; 
 
-        this._globalAngle += this._fakeDeltaTime * 0.1;
+        this._globalAngle += this._fakeDeltaTime * 0.02;
 
         if (this._angle > this._tau) {
             this._angle -= this._tau;
