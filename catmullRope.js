@@ -42,8 +42,6 @@ export default class CatmullRope {
 
         this._fakeDeltaTime = 0.015;
         this._T = 0;
-
-        // start animating
     }
 
     animate() {

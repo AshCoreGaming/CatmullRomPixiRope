@@ -87,6 +87,8 @@ const line0 = new CatmullRope(stage, path0);
 const line1 = new CatmullRope(stage, path1);
 const line2 = new CatmullRope(stage, path2);
 
+console.log(stage);
+
 requestAnimationFrame(animate);
 
 function animate() {
