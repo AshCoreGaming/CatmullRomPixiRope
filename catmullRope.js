@@ -8,12 +8,15 @@ export default class CatmullRope {
     }
 
     _init() {
+        this._tau = Math.PI * 2;
         this._setup = false;
         this._modifiedPath = [];
         this._speed = (Math.random() * 0.1) + 0.9; // some initial speed variance
-        this._angle = Math.random() * 3.14; // used to vary speed over time
+        this._angle = Math.random() * this._tau; // used to vary speed over time
         this._speedVariance = Math.random() * 0.5; // amount of speed variance
         this._speedVarianceFrequency = (Math.random() * 0.5) + 0.5; // rate of speed variance
+
+        this._globalAngle = 0; // so some of the undulation is shared by the whole stave
 
         // runs smooth up to 31000 sections
         this._ropeSections = 480;//2400;
@@ -50,36 +53,47 @@ export default class CatmullRope {
     }
 
     animate() {
-        if ( this._T === 1) {
-            return;
-        }
+        
         for (var i = 0; i < this._points.length; i++) {
+            const point = this._points[i];
             const relativeT = this._T * (i/this._points.length);
+            let pos = new vec2(point.x, point.y);
 
-            // only do this up to T === 1
-            const pos = this._catmullRom(this._path, relativeT);
+                pos = this._catmullRom(this._path, relativeT);
+                point.x = pos.x;
+                point.y = pos.y;
 
-            this._points[i].x = pos.x;
-            this._points[i].y = pos.y;
-
-            // Then undulate all the time once position is set :)
+            //undulate
+            point.y += Math.sin(this._globalAngle + (relativeT * 30)) * 8; // global undulation (whole stave)
+            point.y += Math.sin(this._angle + (relativeT * 45)) * 4; // local undulation (this line)
+            point.x += Math.sin(this._angle + (relativeT * 15)) * 3; 
 
             //Positionthis._StartDot()
             if (i === 0) {
-                this._startDot.x =  pos.x;
-                this._startDot.y =  pos.y;
+                this._startDot.x =  point.x;
+                this._startDot.y =  point.y;
             }
 
             //Positionthis._EndDot
             if (i === this._points.length -1) {
-                this._endDot.x = pos.x;
-                this._endDot.y = pos.y;
+                this._endDot.x = point.x;
+                this._endDot.y = point.y;
             }
         }
         const variedSpeed = this._speed + (Math.sin(this._angle) * this._speedVariance);
         this._angle += this._fakeDeltaTime * 0.1 * this._speedVarianceFrequency;
         this._T += this._fakeDeltaTime * (1/this._ropeSections) * variedSpeed;
         this._T = this._T > 1 ? 1 : this._T; 
+
+        this._globalAngle += this._fakeDeltaTime * 0.1;
+
+        if (this._angle > this._tau) {
+            this._angle -= this._tau;
+        }
+
+        if (this._globalAngle > this._tau) {
+            this._globalAngle -= this._tau;
+        }
     }
 
     _catmullRom(path, t) {
