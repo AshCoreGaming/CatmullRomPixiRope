@@ -1,16 +1,21 @@
 import vec2 from "./vec2.js";
 
 export default class CatmullRope {
-    constructor(stage, path) {
+    constructor(stage, path, alreadyCatmullRomPath=false) {
         this._stage = stage;
         this._path = path;
+        this._setup = alreadyCatmullRomPath;
         this._init();
+    }
+
+    get modifiedPath() {
+        return this._modifiedPath;
     }
 
     _init() {
         this._tau = Math.PI * 2;
         this._setup = false;
-        this._modifiedPath = [];
+        this._modifiedPath = this._setup ? this._path : [];
         this._speed = (Math.random() * 0.1) + 0.9; // some initial speed variance
         this._angle = Math.random() * this._tau; // used to vary speed over time
         this._speedVariance = Math.random() * 0.5; // amount of speed variance
@@ -34,7 +39,6 @@ export default class CatmullRope {
             this._points.push(new PIXI.Point(i * this._sectionLength, 0));
         }
 
-        // I think the minimum width of the snake might be 16 pixels, discovered when trying to use the 8 pixel tall 'gldSt
         this._goldBar = PIXI.Texture.fromImage('gldStrip.png');
         this._goldBar.anchor = new PIXI.ObservablePoint(0.5, 0.5);
         this._strip = new PIXI.mesh.Rope(this._goldBar, this._points);

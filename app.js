@@ -13,10 +13,12 @@ stage.addChild(bg);
 // Path points
 let path0 = [];
 path0 = [
+    new vec2(0, 100),
     new vec2(100, 100),
-    new vec2(200, 200),
-    new vec2(200, 300),
-    new vec2(100, 400)
+    new vec2(300, 100),
+    new vec2(300, 300),
+    new vec2(100, 300),
+    new vec2(100, 500),
 ]
 
 // log the tangent vectors at T values of 0, 0.5, and 1
@@ -46,6 +48,8 @@ derivative(path0, 0.5);
 derivative(path0, 1);
 
 // using to learn about weights
+// learn which t values to get the normal from in each bezier so we can generate the offset paths
+// its 0, 0.333, 0.667, and 1
 function _cubicBezier(p0, p1, p2, p3, t) {
     const u = 1 - t;
     const tt = t * t;
@@ -56,34 +60,15 @@ function _cubicBezier(p0, p1, p2, p3, t) {
     let p = vec2.multiply(uuu, p0); 
     p = vec2.add(p, vec2.multiply(3 * uu * t, p1)); 
     p = vec2.add(p, vec2.multiply(3 * u * tt, p2)); 
-    p = vec2.add(p, vec2.multiply(ttt, p3)); 
-    console.log(`val: ${3 * uu * t}, t: ${t}`);
+    p = vec2.add(p, vec2.multiply(ttt, p3));
     return p;
 }
 
-for (let i = 0; i < 101; i++) {
-    const t = i * 0.01;
-    const pointy = _cubicBezier(path0[0], path0[1], path0[2], path0[3], t);
-    //console.log(`Point at t = ${t} is {${pointy.x}, ${pointy.y}}`);
-}
-
-
-let path1 = [];
-let path2 = [];
-let path3 = [];
-let path4 = [];
-path0.forEach(p => {
-    path1.push(new vec2(p.x, p.y + 20));
-    path2.push(new vec2(p.x, p.y + 40));
-    path3.push(new vec2(p.x, p.y + 60));
-    path4.push(new vec2(p.x, p.y + 80));
-});
-
-//randomisePathPoints(path0);
-randomisePathPoints(path1);
-randomisePathPoints(path2);
-randomisePathPoints(path3);
-randomisePathPoints(path4);
+// //randomisePathPoints(path0);
+// randomisePathPoints(path1);
+// randomisePathPoints(path2);
+// randomisePathPoints(path3);
+// randomisePathPoints(path4);
 
 
 function randomisePathPoints(path) {
@@ -107,16 +92,19 @@ path0.forEach((point, i) => {
 });
 
 const line0 = new CatmullRope(stage, path0);
-const line1 = new CatmullRope(stage, path1);
-const line2 = new CatmullRope(stage, path2);
-const line3 = new CatmullRope(stage, path3);
-const line4 = new CatmullRope(stage, path4);
+let line1;
+createOffsetPaths(line0);
+
+function createOffsetPaths(catmullRope) {
+    
+}
+
 
 requestAnimationFrame(animate);
 
 function animate() {
     line0.animate();
-    // line1.animate();
+    line1.animate();
     // line2.animate();
     // line3.animate();
     // line4.animate();
