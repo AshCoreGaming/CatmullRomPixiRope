@@ -19,4 +19,8 @@ export default class vec2 {
     static lerp(a, b, t) {
         return this.add(a, (this.multiply(t, this.minus(b, a))));
     }
+
+    static magnitude(a) {
+        return Math.sqrt((a.x * a.x) + (a.y * a.y));
+    }
 }

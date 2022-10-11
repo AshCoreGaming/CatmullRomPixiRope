@@ -100,15 +100,15 @@ export default class CatmullRope {
         
         if (!this._setup) {
             this._setupPath(path);
-            //Show points
-            // this._modifiedPath.forEach((point, i) => {
-            //     const dot = PIXI.Sprite.from('goldCircle.png');
-            //     dot.anchor.set(0.5, 0.5);
-            //     dot.x = point.x;
-            //     dot.y = point.y;
-            //     dot.tint = i % 3 === 0 ? 0x00FF00 : 0xFF00FF;
-            //     stage.addChild(dot);
-            // });
+            // Show points
+            this._modifiedPath.forEach((point, i) => {
+                const dot = PIXI.Sprite.from('gldDot.png');
+                dot.anchor.set(0.5, 0.5);
+                dot.x = point.x;
+                dot.y = point.y;
+                dot.tint = i % 3 === 0 ? 0x00FF00 : 0xFF00FF;
+                this._stage.addChild(dot);
+            });
             this._setup = true;
         }
         if (t > 0.75) {

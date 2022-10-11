@@ -13,13 +13,60 @@ stage.addChild(bg);
 // Path points
 let path0 = [];
 path0 = [
-    new vec2(-100,550),
-    new vec2(-20,450),
-    new vec2(300,450),
-    new vec2(550,200),
-    new vec2(820,100),
-    new vec2(950,50),
+    new vec2(100, 100),
+    new vec2(200, 200),
+    new vec2(200, 300),
+    new vec2(100, 400)
 ]
+
+// log the tangent vectors at T values of 0, 0.5, and 1
+// to check the derivative math works out
+/*
+    p'(t) = 
+    p0( -3tpow2 + 6t-3 ) +
+    p1( 9tpow2 -12t+3  ) +
+    p2( -9tpow2 + 6t   ) +
+    p3( 3tpow2         )
+*/
+function derivative(path, t) {
+    const p0 = vec2.multiply((Math.pow(t, 2) * -3) + (  (6 * t) - 3),  path[0]);
+    const p1 = vec2.multiply((Math.pow(t, 2) *  9) + ((-12 * t) + 3),  path[1]);
+    const p2 = vec2.multiply((Math.pow(t, 2) * -9) + (   6 * t     ),  path[2]);
+    const p3 = vec2.multiply((Math.pow(t, 2) *  3)                  ,  path[3]);
+    const tangent = vec2.add(p0, vec2.add(p1, vec2.add(p2, p3)));
+    console.log(`Tangent: ${tangent.x}, ${tangent.y}`);
+    const magTing = vec2.magnitude(vec2.minus(p1, path[1]));
+    console.log(`magnitude of t(${t}) point along path minus path point 1: ${magTing}`);
+}
+
+const magni = vec2.magnitude(new vec2(0, 2));
+console.log(magni);
+derivative(path0, 0);
+derivative(path0, 0.5);
+derivative(path0, 1);
+
+// using to learn about weights
+function _cubicBezier(p0, p1, p2, p3, t) {
+    const u = 1 - t;
+    const tt = t * t;
+    const uu = u * u;
+    const uuu = uu * u;
+    const ttt = tt * t;
+    
+    let p = vec2.multiply(uuu, p0); 
+    p = vec2.add(p, vec2.multiply(3 * uu * t, p1)); 
+    p = vec2.add(p, vec2.multiply(3 * u * tt, p2)); 
+    p = vec2.add(p, vec2.multiply(ttt, p3)); 
+    console.log(`val: ${3 * uu * t}, t: ${t}`);
+    return p;
+}
+
+for (let i = 0; i < 101; i++) {
+    const t = i * 0.01;
+    const pointy = _cubicBezier(path0[0], path0[1], path0[2], path0[3], t);
+    //console.log(`Point at t = ${t} is {${pointy.x}, ${pointy.y}}`);
+}
+
 
 let path1 = [];
 let path2 = [];
@@ -32,7 +79,7 @@ path0.forEach(p => {
     path4.push(new vec2(p.x, p.y + 80));
 });
 
-randomisePathPoints(path0);
+//randomisePathPoints(path0);
 randomisePathPoints(path1);
 randomisePathPoints(path2);
 randomisePathPoints(path3);
@@ -46,18 +93,18 @@ function randomisePathPoints(path) {
     });
 }
 
-// //Show points
-// path0.forEach((point, i) => {
-//     const dot = PIXI.Sprite.from('gldDot.png');
-//     dot.anchor.set(0.5, 0.5);
-//     dot.x = point.x;
-//     dot.y = point.y;
-//     dot.tint = 0x00FF00;
-//     if (i === 0 || i == path0.length - 1) {
-//         dot.tint = 0x005FFF;
-//     }
-//     stage.addChild(dot);
-// });
+//Show points
+path0.forEach((point, i) => {
+    const dot = PIXI.Sprite.from('gldDot.png');
+    dot.anchor.set(0.5, 0.5);
+    dot.x = point.x;
+    dot.y = point.y;
+    dot.tint = 0x00FF00;
+    if (i === 0 || i == path0.length - 1) {
+        dot.tint = 0x005FFF;
+    }
+    stage.addChild(dot);
+});
 
 const line0 = new CatmullRope(stage, path0);
 const line1 = new CatmullRope(stage, path1);
@@ -69,10 +116,10 @@ requestAnimationFrame(animate);
 
 function animate() {
     line0.animate();
-    line1.animate();
-    line2.animate();
-    line3.animate();
-    line4.animate();
+    // line1.animate();
+    // line2.animate();
+    // line3.animate();
+    // line4.animate();
 
     // render the stage
     renderer.render(stage);
