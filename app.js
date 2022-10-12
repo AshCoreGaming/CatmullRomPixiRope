@@ -13,12 +13,16 @@ stage.addChild(bg);
 // Path points
 let path0 = [];
 path0 = [
-    new vec2(0, 100),
-    new vec2(100, 100),
-    new vec2(300, 100),
-    new vec2(300, 300),
-    new vec2(100, 300),
-    new vec2(100, 500),
+    new vec2(-200, 400),
+    new vec2(0, 400),
+    new vec2(200, 400),
+    new vec2(200, 200),
+    new vec2(400, 200),
+    new vec2(400, 400),
+    new vec2(600, 400),
+    new vec2(600, 200),
+    new vec2(800, 200),
+    new vec2(1000, 200),
 ]
 
 // log the tangent vectors at T values of 0, 0.5, and 1
@@ -36,13 +40,10 @@ function derivative(path, t) {
     const p2 = vec2.multiply((Math.pow(t, 2) * -9) + (   6 * t     ),  path[2]);
     const p3 = vec2.multiply((Math.pow(t, 2) *  3)                  ,  path[3]);
     const tangent = vec2.add(p0, vec2.add(p1, vec2.add(p2, p3)));
-    console.log(`Tangent: ${tangent.x}, ${tangent.y}`);
     const magTing = vec2.magnitude(vec2.minus(p1, path[1]));
-    console.log(`magnitude of t(${t}) point along path minus path point 1: ${magTing}`);
 }
 
 const magni = vec2.magnitude(new vec2(0, 2));
-console.log(magni);
 derivative(path0, 0);
 derivative(path0, 0.5);
 derivative(path0, 1);
@@ -91,12 +92,18 @@ path0.forEach((point, i) => {
     stage.addChild(dot);
 });
 
-const line0 = new CatmullRope(stage, path0);
+const line0 = new CatmullRope({stage, path: path0});
 let line1;
 createOffsetPaths(line0);
 
 function createOffsetPaths(catmullRope) {
-    
+    const normalData = catmullRope.getNotmalsAtPathPoints();
+    let path1 = [];
+    normalData.forEach(pointy => {
+        path1.push(vec2.add(pointy.point, vec2.multiply(20, pointy.normal)));
+    });
+    line1 = new CatmullRope({stage, path: path1, alreadyCatmullRomPath: true})
+    console.log(line1);
 }
 
 

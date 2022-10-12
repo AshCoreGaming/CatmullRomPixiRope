@@ -23,4 +23,13 @@ export default class vec2 {
     static magnitude(a) {
         return Math.sqrt((a.x * a.x) + (a.y * a.y));
     }
+
+    static normalize(a) {
+        const magnitude = this.magnitude(a);
+        return new vec2(a.x/magnitude, a.y/magnitude);
+    }
+
+    static rotate90Clockwise(a) {
+        return new vec2(-a.y, a.x);
+    }
 }
