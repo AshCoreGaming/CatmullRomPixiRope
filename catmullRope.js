@@ -8,37 +8,46 @@ export default class CatmullRope {
     get path() {
         return this._path;
     }
-    getNotmalsAtPathPoints() {
+
+    getNotmalsAtPassThruPoints() {
         let normalData = [];
+
+        // We need original first point and normal
+        normalData.push({point: this._originalPath[0], normal: this._getNormal(vec2.minus(this._path[0], this._originalPath[0]))});
+
         for (let i = 0; i < this._noOfPassThruPoints; i++) {
             const startPoint = i * 3;
-            for (let j = 0; j < 3; j++) {
-                const t = j * 0.33;
-                let tangent = this._derivative(this._path[startPoint], 
-                    this._path[startPoint + 1], 
-                    this._path[startPoint + 2], 
-                    this._path[startPoint + 3], 
-                    t
-                );
-                tangent = vec2.normalize(tangent);
-                const normal = vec2.rotate90Clockwise(tangent);
-                normalData.push({point: this._path[startPoint + j], normal});
-            }
+            const tangent = this._getCubicBezierDerivative(startPoint, 0);
+            const normal = this._getNormal(tangent);
+            normalData.push({point: this._path[startPoint], normal});
+            
             if (i === this._noOfPassThruPoints - 1) {
-                let tangent = this._derivative(this._path[startPoint], 
-                    this._path[startPoint + 1], 
-                    this._path[startPoint + 2], 
-                    this._path[startPoint + 3], 
-                    1
-                );
-                tangent = vec2.normalize(tangent);
-                const normal = vec2.rotate90Clockwise(tangent);
+                const tangent = this._getCubicBezierDerivative(startPoint, 1);
+                const normal = this._getNormal(tangent);
                 normalData.push({point: this._path[startPoint + 3], normal});
             }
         }
+
+        // And original last point and normal
+        normalData.push({point: this._originalPath[this._originalPath.length - 1], normal: this._getNormal(vec2.minus(this._originalPath[this._originalPath.length - 1], this._path[0]))});
+
         console.log(this._path);
         console.log(normalData);
         return normalData;
+    }
+
+    _getCubicBezierDerivative(startPoint, t) {
+        return this._derivative(this._path[startPoint], 
+            this._path[startPoint + 1], 
+            this._path[startPoint + 2], 
+            this._path[startPoint + 3], 
+            t
+        );
+    }
+
+    _getNormal(vector) {
+        const normalized = vec2.normalize(vector); // Dont confuse normalizing for getting a normal direction
+        return vec2.rotate90Clockwise(normalized);
     }
 
     _initVars(initData) {
@@ -47,16 +56,16 @@ export default class CatmullRope {
         // tension mostly works as expected between between -0.5 and 1. But do your thing :)
         const { stage, path, tension=0, alreadyCatmullRomPath=false} = initData;
         this._stage = stage;
+        this._originalPath = path;
         this._path = path;
         this._tension = this._tensionConst - (this._tensionConst * tension);
         this._setup = alreadyCatmullRomPath;
         
         // setup path
-        this._originalPath = this._path;
         this._path = this._setup ? this._path : this._setupPath();
         this._noOfPassThruPoints = (this._path.length - 1) / 3;
         this._passThruPointToPointLength = 1/this._noOfPassThruPoints; // only lerp every 3 this._points ??
-        this._showPoints();
+        //this._showPoints();
 
         // setup motion
         this._tau = Math.PI * 2;
@@ -72,7 +81,7 @@ export default class CatmullRope {
 
         // this will be done by the stave class so we only do it once in the actual ting
         this._staveAngle = 0; // so some of the undulation is shared by the whole stave
-        this._staveUndulationAmplitudeY = 8;
+        this._staveUndulationAmplitudeY = 10;
         this._staveUndulationFrequencyY = 6;
         this._staveUndulationVelocity = 0.005;
 
@@ -176,6 +185,13 @@ export default class CatmullRope {
         return p;
     }
 
+    /*
+    p'(t) = 
+    p0( -3tpow2 + 6t-3 ) +
+    p1( 9tpow2 -12t+3  ) +
+    p2( -9tpow2 + 6t   ) +
+    p3( 3tpow2         )
+    */
     _derivative(p0, p1, p2, p3, t) {
         p0 = vec2.multiply((Math.pow(t, 2) * -3) + (  (6 * t) - 3),  p0);
         p1 = vec2.multiply((Math.pow(t, 2) *  9) + ((-12 * t) + 3),  p1);

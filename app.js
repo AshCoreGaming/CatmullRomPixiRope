@@ -13,57 +13,17 @@ stage.addChild(bg);
 // Path points
 let path0 = [];
 path0 = [
-    new vec2(-200, 400),
-    new vec2(0, 400),
+    new vec2(-300, 400),
+    new vec2(-50, 400),
     new vec2(200, 400),
     new vec2(200, 200),
     new vec2(400, 200),
     new vec2(400, 400),
     new vec2(600, 400),
     new vec2(600, 200),
-    new vec2(800, 200),
-    new vec2(1000, 200),
+    new vec2(850, 200),
+    new vec2(1100, 200),
 ]
-
-// log the tangent vectors at T values of 0, 0.5, and 1
-// to check the derivative math works out
-/*
-    p'(t) = 
-    p0( -3tpow2 + 6t-3 ) +
-    p1( 9tpow2 -12t+3  ) +
-    p2( -9tpow2 + 6t   ) +
-    p3( 3tpow2         )
-*/
-function derivative(path, t) {
-    const p0 = vec2.multiply((Math.pow(t, 2) * -3) + (  (6 * t) - 3),  path[0]);
-    const p1 = vec2.multiply((Math.pow(t, 2) *  9) + ((-12 * t) + 3),  path[1]);
-    const p2 = vec2.multiply((Math.pow(t, 2) * -9) + (   6 * t     ),  path[2]);
-    const p3 = vec2.multiply((Math.pow(t, 2) *  3)                  ,  path[3]);
-    const tangent = vec2.add(p0, vec2.add(p1, vec2.add(p2, p3)));
-    const magTing = vec2.magnitude(vec2.minus(p1, path[1]));
-}
-
-const magni = vec2.magnitude(new vec2(0, 2));
-derivative(path0, 0);
-derivative(path0, 0.5);
-derivative(path0, 1);
-
-// using to learn about weights
-// learn which t values to get the normal from in each bezier so we can generate the offset paths
-// its 0, 0.333, 0.667, and 1
-function _cubicBezier(p0, p1, p2, p3, t) {
-    const u = 1 - t;
-    const tt = t * t;
-    const uu = u * u;
-    const uuu = uu * u;
-    const ttt = tt * t;
-    
-    let p = vec2.multiply(uuu, p0); 
-    p = vec2.add(p, vec2.multiply(3 * uu * t, p1)); 
-    p = vec2.add(p, vec2.multiply(3 * u * tt, p2)); 
-    p = vec2.add(p, vec2.multiply(ttt, p3));
-    return p;
-}
 
 // //randomisePathPoints(path0);
 // randomisePathPoints(path1);
@@ -92,18 +52,24 @@ path0.forEach((point, i) => {
     stage.addChild(dot);
 });
 
-const line0 = new CatmullRope({stage, path: path0});
-let line1;
+const tension = -0.4;
+const line0 = new CatmullRope({stage, path: path0, tension});
+let lines = [4]
 createOffsetPaths(line0);
 
 function createOffsetPaths(catmullRope) {
-    const normalData = catmullRope.getNotmalsAtPathPoints();
-    let path1 = [];
-    normalData.forEach(pointy => {
-        path1.push(vec2.add(pointy.point, vec2.multiply(20, pointy.normal)));
-    });
-    line1 = new CatmullRope({stage, path: path1, alreadyCatmullRomPath: true})
-    console.log(line1);
+    const offsetMagnitude = 25;
+    const normalData = catmullRope.getNotmalsAtPassThruPoints();
+    let paths = [4];
+    for (let i = 0; i < 4; i++) {
+        paths[i] = [];
+        normalData.forEach(pointy => {
+            const aboveLine = i > 1 ? -1 : 1;
+            const lineOffset = ((i + 1) % 2) + 1;
+            paths[i].push(vec2.add(pointy.point, vec2.multiply(offsetMagnitude * (lineOffset * aboveLine), pointy.normal)));
+        });
+        lines[i] = new CatmullRope({stage, path: paths[i], tension});
+    }
 }
 
 
@@ -111,11 +77,9 @@ requestAnimationFrame(animate);
 
 function animate() {
     line0.animate();
-    line1.animate();
-    // line2.animate();
-    // line3.animate();
-    // line4.animate();
-
+    lines.forEach(line => {
+        line.animate();
+    })
     // render the stage
     renderer.render(stage);
 
