@@ -9,113 +9,6 @@ export default class CatmullRope {
         return this._path;
     }
 
-    getNotmalsAtPassThruPoints() {
-        let normalData = [];
-
-        // We need original first point and normal
-        normalData.push({point: this._originalPath[0], normal: this._getNormal(vec2.minus(this._path[0], this._originalPath[0]))});
-
-        for (let i = 0; i < this._noOfPassThruPoints; i++) {
-            const startPoint = i * 3;
-            const tangent = this._getCubicBezierDerivative(startPoint, 0);
-            const normal = this._getNormal(tangent);
-            normalData.push({point: this._path[startPoint], normal});
-            
-            if (i === this._noOfPassThruPoints - 1) {
-                const tangent = this._getCubicBezierDerivative(startPoint, 1);
-                const normal = this._getNormal(tangent);
-                normalData.push({point: this._path[startPoint + 3], normal});
-            }
-        }
-
-        // And original last point and normal
-        normalData.push({point: this._originalPath[this._originalPath.length - 1], normal: this._getNormal(vec2.minus(this._originalPath[this._originalPath.length - 1], this._path[0]))});
-
-        console.log(this._path);
-        console.log(normalData);
-        return normalData;
-    }
-
-    _getCubicBezierDerivative(startPoint, t) {
-        return this._derivative(this._path[startPoint], 
-            this._path[startPoint + 1], 
-            this._path[startPoint + 2], 
-            this._path[startPoint + 3], 
-            t
-        );
-    }
-
-    _getNormal(vector) {
-        const normalized = vec2.normalize(vector); // Dont confuse normalizing for getting a normal direction
-        return vec2.rotate90Clockwise(normalized);
-    }
-
-    _initVars(initData) {
-        this._tensionConst = 0.1666; // divide by 6, this is the convention and makes what I think
-        // is a zero tension Catmull Rom
-        // tension mostly works as expected between between -0.5 and 1. But do your thing :)
-        const { stage, path, tension=0, alreadyCatmullRomPath=false} = initData;
-        this._stage = stage;
-        this._originalPath = path;
-        this._path = path;
-        this._tension = this._tensionConst - (this._tensionConst * tension);
-        this._setup = alreadyCatmullRomPath;
-        
-        // setup path
-        this._path = this._setup ? this._path : this._setupPath();
-        this._noOfPassThruPoints = (this._path.length - 1) / 3;
-        this._passThruPointToPointLength = 1/this._noOfPassThruPoints; // only lerp every 3 this._points ??
-        //this._showPoints();
-
-        // setup motion
-        this._tau = Math.PI * 2;
-        this._speed = (Math.random() * 0.1) + 0.9; // some initial speed variance
-        this._angle = Math.random() * this._tau; // used to vary speed over time
-        this._speedVariance = Math.random() * 0.5; // amount of speed variance
-        this._speedVarianceFrequency = (Math.random() * 0.5) + 0.5; // rate of speed variance
-        this._undulationAmplitudeX = 3;
-        this._undulationAmplitudeY = 4;
-        this._undulationWavelenghtX = 3;
-        this._undulationWavelengthY = 9;
-        this._undulationVelocity = 0.01;
-
-        // this will be done by the stave class so we only do it once in the actual ting
-        this._staveAngle = 0; // so some of the undulation is shared by the whole stave
-        this._staveUndulationAmplitudeY = 10;
-        this._staveUndulationFrequencyY = 6;
-        this._staveUndulationVelocity = 0.005;
-
-        // runs smooth up to 31000 sections
-        this._ropeSections = 480;//2400;
-        this._ropeLength = 918; // <- is this to do with the image resolution?
-        this._sectionLength = this._ropeLength / this._ropeSections;
-
-        this._startDot = PIXI.Sprite.from('gldDot.png');
-        this._endDot = PIXI.Sprite.from('gldDot.png');
-        this._startDot.anchor.set(0.5, 0.5); // = new PIXI.ObservablePoint(0.5, 0.5);
-        this._endDot.anchor.set(0.5, 0.5);
-
-        // setup pixi rope
-        this._points = [];
-        for (var i = 0; i < this._ropeSections; i++)
-        {
-            this._points.push(new PIXI.Point(i * this._sectionLength, 0));
-        }
-        this._goldBar = PIXI.Texture.fromImage('gldStrip.png');
-        this._goldBar.anchor = new PIXI.ObservablePoint(0.5, 0.5);
-        this._line = new PIXI.mesh.Rope(this._goldBar, this._points);
-
-        // setup the stage
-        this._lineContainer = new PIXI.Container();
-        this._lineContainer.addChild(this._line);
-        this._stage.addChild(this._startDot);
-        this._stage.addChild(this._endDot);
-        this._stage.addChild(this._lineContainer);
-
-        this._fakeDeltaTime = 5;
-        this._T = 0;
-    }
-
     animate() {
         for (var i = 0; i < this._points.length; i++) {
             const point = this._points[i];
@@ -157,6 +50,45 @@ export default class CatmullRope {
         if (this._staveAngle > this._tau) {
             this._staveAngle -= this._tau;
         }
+    }
+
+    getNotmalsAtPassThruPoints() {
+        let normalData = [];
+
+        // We need original first point and normal
+        normalData.push({point: this._originalPath[0], normal: this._getNormal(vec2.minus(this._path[0], this._originalPath[0]))});
+
+        for (let i = 0; i < this._noOfPassThruPoints; i++) {
+            const startPoint = i * 3;
+            const tangent = this._getCubicBezierDerivative(startPoint, 0);
+            const normal = this._getNormal(tangent);
+            normalData.push({point: this._path[startPoint], normal});
+            
+            if (i === this._noOfPassThruPoints - 1) {
+                const tangent = this._getCubicBezierDerivative(startPoint, 1);
+                const normal = this._getNormal(tangent);
+                normalData.push({point: this._path[startPoint + 3], normal});
+            }
+        }
+
+        // And original last point and normal
+        normalData.push({point: this._originalPath[this._originalPath.length - 1], normal: this._getNormal(vec2.minus(this._originalPath[this._originalPath.length - 1], this._path[0]))});
+
+        return normalData;
+    }
+
+    _getCubicBezierDerivative(startPoint, t) {
+        return this._derivative(this._path[startPoint], 
+            this._path[startPoint + 1], 
+            this._path[startPoint + 2], 
+            this._path[startPoint + 3], 
+            t
+        );
+    }
+
+    _getNormal(vector) {
+        const normalized = vec2.normalize(vector); // Dont confuse normalizing for getting a normal direction
+        return vec2.rotate90Clockwise(normalized);
     }
 
     _catmullRom(t) {
@@ -225,6 +157,72 @@ export default class CatmullRope {
             dot.tint = i % 3 === 0 ? 0x00FF00 : 0xFF00FF;
             this._stage.addChild(dot);
         });
+    }
+
+    _initVars(initData) {
+        this._tensionConst = 0.1666; // divide by 6, this is the convention and makes what I think
+        // is a zero tension Catmull Rom
+        // tension mostly works as expected between between -0.5 and 1. But do your thing :)
+        const { stage, path, tension=0, alreadyCatmullRomPath=false} = initData;
+        this._stage = stage;
+        this._originalPath = path;
+        this._path = path;
+        this._tension = this._tensionConst - (this._tensionConst * tension);
+        this._setup = alreadyCatmullRomPath;
+        
+        // setup path
+        this._path = this._setup ? this._path : this._setupPath();
+        this._noOfPassThruPoints = (this._path.length - 1) / 3;
+        this._passThruPointToPointLength = 1/this._noOfPassThruPoints; // only lerp every 3 this._points ??
+        //this._showPoints();
+
+        // setup motion
+        this._tau = Math.PI * 2;
+        this._speed = (Math.random() * 0.1) + 0.9; // some initial speed variance
+        this._angle = Math.random() * this._tau; // used to vary speed over time
+        this._speedVariance = Math.random() * 0.5; // amount of speed variance
+        this._speedVarianceFrequency = (Math.random() * 0.5) + 0.5; // rate of speed variance
+        this._undulationAmplitudeX = 3;
+        this._undulationAmplitudeY = 4;
+        this._undulationWavelenghtX = 3;
+        this._undulationWavelengthY = 9;
+        this._undulationVelocity = 0.01;
+
+        // this will be done by the stave class so we only do it once in the actual ting
+        this._staveAngle = 0; // so some of the undulation is shared by the whole stave
+        this._staveUndulationAmplitudeY = 10;
+        this._staveUndulationFrequencyY = 6;
+        this._staveUndulationVelocity = 0.005;
+
+        // runs smooth up to 31000 sections
+        this._ropeSections = 480;//2400;
+        this._ropeLength = 918; // <- is this to do with the image resolution?
+        this._sectionLength = this._ropeLength / this._ropeSections;
+
+        this._startDot = PIXI.Sprite.from('gldDot.png');
+        this._endDot = PIXI.Sprite.from('gldDot.png');
+        this._startDot.anchor.set(0.5, 0.5); // = new PIXI.ObservablePoint(0.5, 0.5);
+        this._endDot.anchor.set(0.5, 0.5);
+
+        // setup pixi rope
+        this._points = [];
+        for (var i = 0; i < this._ropeSections; i++)
+        {
+            this._points.push(new PIXI.Point(i * this._sectionLength, 0));
+        }
+        this._goldBar = PIXI.Texture.fromImage('gldStrip.png');
+        this._goldBar.anchor = new PIXI.ObservablePoint(0.5, 0.5);
+        this._line = new PIXI.mesh.Rope(this._goldBar, this._points);
+
+        // setup the stage
+        this._lineContainer = new PIXI.Container();
+        this._lineContainer.addChild(this._line);
+        this._stage.addChild(this._startDot);
+        this._stage.addChild(this._endDot);
+        this._stage.addChild(this._lineContainer);
+
+        this._fakeDeltaTime = 5;
+        this._T = 0;
     }
 }
 

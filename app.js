@@ -13,16 +13,16 @@ stage.addChild(bg);
 // Path points
 let path0 = [];
 path0 = [
-    new vec2(-300, 400),
-    new vec2(-50, 400),
-    new vec2(200, 400),
-    new vec2(200, 200),
+    new vec2(-300, 600),
+    new vec2(-30, 550),
+    new vec2(500, 500),
+    new vec2(200, 300),
     new vec2(400, 200),
-    new vec2(400, 400),
-    new vec2(600, 400),
-    new vec2(600, 200),
-    new vec2(850, 200),
-    new vec2(1100, 200),
+    new vec2(500, 100),
+    new vec2(650, 100),
+    new vec2(700, 300),
+    new vec2(850, 300),
+    new vec2(1100, 300),
 ]
 
 // //randomisePathPoints(path0);
@@ -52,12 +52,13 @@ path0.forEach((point, i) => {
     stage.addChild(dot);
 });
 
-const tension = -0.4;
+const tension = 0;
 const line0 = new CatmullRope({stage, path: path0, tension});
 let lines = [4]
 createOffsetPaths(line0);
 
 function createOffsetPaths(catmullRope) {
+    // a large offsetMagnitude will kink corners if path points are too close together
     const offsetMagnitude = 25;
     const normalData = catmullRope.getNotmalsAtPassThruPoints();
     let paths = [4];
