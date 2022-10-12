@@ -11,65 +11,58 @@ bg.scale.y = 0.5;
 stage.addChild(bg);
 
 // Path points
-let path0 = [];
-path0 = [
-    new vec2(-300, 600),
-    new vec2(-30, 550),
-    new vec2(500, 500),
-    new vec2(200, 300),
-    new vec2(400, 200),
-    new vec2(500, 100),
-    new vec2(650, 100),
-    new vec2(700, 300),
-    new vec2(850, 300),
-    new vec2(1100, 300),
+// you need at least 4 points
+// the first and last point aren't drawn they get used to help determine the initial direction of the line
+// Things to consider when placing path points to get a nice smooth line 
+// If you desire such a thing
+// points too close together generally don't look too good
+// large variation in the distance between points don't look too good
+// acute angles between points don't look too good, especially if there's also variation in the distance
+let paths = [5];
+paths[0] = [
+    new vec2(-550, 150),
+    new vec2(-50, 150),
+    new vec2(650, 150),
+    new vec2(150, 500),
+    new vec2(650, 500),
+    new vec2(1550, 500),
+    new vec2(1050, 500),
 ]
 
-// //randomisePathPoints(path0);
-// randomisePathPoints(path1);
-// randomisePathPoints(path2);
-// randomisePathPoints(path3);
-// randomisePathPoints(path4);
-
-
-function randomisePathPoints(path) {
-    path.forEach(p => {
-        p.x += (Math.random() - 0.5) * 16;
-        p.y += (Math.random() - 0.5) * 16;
-    });
-}
+//randomisePathPoints(paths[0]);
 
 //Show points
-path0.forEach((point, i) => {
+paths[0].forEach((point, i) => {
     const dot = PIXI.Sprite.from('gldDot.png');
     dot.anchor.set(0.5, 0.5);
     dot.x = point.x;
     dot.y = point.y;
     dot.tint = 0x00FF00;
-    if (i === 0 || i == path0.length - 1) {
+    if (i === 0 || i == paths[0].length - 1) {
         dot.tint = 0x005FFF;
     }
     stage.addChild(dot);
 });
 
-const tension = 0;
-const line0 = new CatmullRope({stage, path: path0, tension});
-let lines = [4]
-createOffsetPaths(line0);
+const tension = -0.2;
+let lines = [5];
+lines[0] = new CatmullRope({stage, path: paths[0], tension});
+createOffsetPaths(lines[0]);
 
 function createOffsetPaths(catmullRope) {
     // a large offsetMagnitude will kink corners if path points are too close together
     const offsetMagnitude = 25;
     const normalData = catmullRope.getNotmalsAtPassThruPoints();
-    let paths = [4];
     for (let i = 0; i < 4; i++) {
-        paths[i] = [];
+        const j = i+1;
+        paths[j] = [];
         normalData.forEach(pointy => {
             const aboveLine = i > 1 ? -1 : 1;
             const lineOffset = ((i + 1) % 2) + 1;
-            paths[i].push(vec2.add(pointy.point, vec2.multiply(offsetMagnitude * (lineOffset * aboveLine), pointy.normal)));
+            paths[j].push(vec2.add(pointy.point, vec2.multiply(offsetMagnitude * (lineOffset * aboveLine), pointy.normal)));
         });
-        lines[i] = new CatmullRope({stage, path: paths[i], tension});
+        //randomisePathPoints(paths[j]);
+        lines[j] = new CatmullRope({stage, path: paths[j], tension});
     }
 }
 
@@ -77,7 +70,6 @@ function createOffsetPaths(catmullRope) {
 requestAnimationFrame(animate);
 
 function animate() {
-    line0.animate();
     lines.forEach(line => {
         line.animate();
     })
@@ -85,6 +77,13 @@ function animate() {
     renderer.render(stage);
 
     requestAnimationFrame(animate);
+}
+
+function randomisePathPoints(path) {
+    path.forEach(p => {
+        p.x += (Math.random() - 0.5) * 16;
+        p.y += (Math.random() - 0.5) * 16;
+    });
 }
 
 // path0 = [
