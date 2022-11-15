@@ -134,6 +134,13 @@ export default class CatmullRope {
         //const magTing = vec2.magnitude(vec2.minus(p1, path[1]));
     }
 
+    /**
+     * We need to apply De Casteljau's algorithm to the original path
+     * to generate a bunch of extra points needed for a catmull rom path to
+     * pass through all of the original path's points
+     * 
+     * @returns {Array.<vec2>} 
+     */
     _setupPath() {
         let modifiedPath = [];
         for (let i = 1; i < this._path.length -1; i++) {
@@ -160,7 +167,8 @@ export default class CatmullRope {
     }
 
     _initVars(initData) {
-        this._tensionConst = 0.1666; // divide by 6, this is the convention and makes what I think
+        this._tensionConst = 0.1666; // divide by 6 (part of De Casteljau's algorithm)
+        // this is the convention and makes what I think
         // is a zero tension Catmull Rom
         // tension mostly works as expected between between -0.5 and 1. But do your thing :)
         const { stage, path, tension=0, alreadyCatmullRomPath=false} = initData;
@@ -173,7 +181,7 @@ export default class CatmullRope {
         // setup path
         this._path = this._setup ? this._path : this._setupPath();
         this._noOfPassThruPoints = (this._path.length - 1) / 3;
-        this._passThruPointToPointLength = 1/this._noOfPassThruPoints; // only lerp every 3 this._points ??
+        this._passThruPointToPointLength = 1/this._noOfPassThruPoints;
         //this._showPoints();
 
         // setup motion

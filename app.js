@@ -45,11 +45,11 @@ paths[0].forEach((point, i) => {
 });
 
 const tension = -0.2;
-let lines = [5];
-lines[0] = new CatmullRope({stage, path: paths[0], tension});
-createOffsetPaths(lines[0]);
+let stave = [5];
+stave[0] = new CatmullRope({stage, path: paths[0], tension});
+createOffsetLines(stave[0]);
 
-function createOffsetPaths(catmullRope) {
+function createOffsetLines(catmullRope) {
     // a large offsetMagnitude will kink corners if path points are too close together
     const offsetMagnitude = 25;
     const normalData = catmullRope.getNotmalsAtPassThruPoints();
@@ -62,7 +62,7 @@ function createOffsetPaths(catmullRope) {
             paths[j].push(vec2.add(pointy.point, vec2.multiply(offsetMagnitude * (lineOffset * aboveLine), pointy.normal)));
         });
         //randomisePathPoints(paths[j]);
-        lines[j] = new CatmullRope({stage, path: paths[j], tension});
+        stave[j] = new CatmullRope({stage, path: paths[j], tension});
     }
 }
 
@@ -70,7 +70,7 @@ function createOffsetPaths(catmullRope) {
 requestAnimationFrame(animate);
 
 function animate() {
-    lines.forEach(line => {
+    stave.forEach(line => {
         line.animate();
     })
     // render the stage
